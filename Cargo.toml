@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "crates/rim-common",
+    "crates/rim-registry",
+    "crates/rim-pub",
+    "crates/rim-sub",
+    "crates/rim-bench",
+]
+resolver = "2"
