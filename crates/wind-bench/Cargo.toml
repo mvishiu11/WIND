@@ -1,0 +1,18 @@
+[package]
+name = "wind-bench"
+version = "0.1.0"
+edition = "2021"
+description = "Benchmarking tools for WIND protocol performance"
+
+[dependencies]
+wind-core = { path = "../wind-core" }
+wind-client = { path = "../wind-client" }
+wind-server = { path = "../wind-server" }
+wind-registry = { path = "../wind-registry" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+hdrhistogram = { workspace = true }
+rand = { workspace = true }

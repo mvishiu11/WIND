@@ -1,0 +1,15 @@
+[package]
+name = "wind-codegen"
+version = "0.1.0"
+edition = "2021"
+description = "Code generation and schema management for WIND protocol"
+
+[dependencies]
+wind-core = { path = "../wind-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "2.0", features = ["full"] }

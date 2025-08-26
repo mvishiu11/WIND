@@ -1,0 +1,29 @@
+[package]
+name = "wind-examples"
+version = "0.1.0"
+edition = "2021"
+
+[[example]]
+name = "temperature_sensor"
+path = "examples/temperature_sensor.rs"
+
+[[example]]
+name = "rpc_calculator"
+path = "examples/rpc_calculator.rs"
+
+[dependencies]
+wind-core = { path = "crates/wind-core" }
+wind-client = { path = "crates/wind-client" }
+wind-server = { path = "crates/wind-server" }
+wind-registry = { path = "crates/wind-registry" }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+rand = { workspace = true }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "benchmark_test"
+harness = false

@@ -1,0 +1,15 @@
+[package]
+name = "wind-server"
+version = "0.1.0"
+edition = "2021"
+description = "WIND server library for publishing data and serving RPC calls"
+
+[dependencies]
+wind-core = { path = "../wind-core" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }

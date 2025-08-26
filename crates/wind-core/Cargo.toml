@@ -1,0 +1,15 @@
+[package]
+name = "wind-core"
+version = "0.1.0"
+edition = "2021"
+description = "Core types and protocols for WIND (WIND Is Not DIM)"
+
+[dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+bincode = { workspace = true }
+bytes = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }

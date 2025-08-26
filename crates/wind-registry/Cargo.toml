@@ -1,0 +1,16 @@
+[package]
+name = "wind-registry"
+version = "0.1.0"
+edition = "2021"
+description = "WIND registry service for service discovery"
+
+[dependencies]
+wind-core = { path = "../wind-core" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+dashmap = { workspace = true }
+glob = { workspace = true }
+uuid = { workspace = true }
+clap = { version = "4.0", features = ["derive"] }
