@@ -1,4 +1,4 @@
-# RIM POC (Rust Information Mesh)
+# WIND (WIND Is Not DIM) POC
 
 Workspace layout:
 - crates/rim-common
