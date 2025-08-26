@@ -1,6 +1,6 @@
+use crate::{Result, WindType, WindValue};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::{WindType, WindValue, Result};
 
 /// Schema definition for type validation
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -21,19 +21,20 @@ impl Schema {
                     if let Some(field_value) = map.get(field_name) {
                         self.validate_type(field_value, expected_type)?;
                     } else {
-                        return Err(crate::WindError::Schema(
-                            format!("Missing required field: {}", field_name)
-                        ));
+                        return Err(crate::WindError::Schema(format!(
+                            "Missing required field: {}",
+                            field_name
+                        )));
                     }
                 }
                 Ok(())
             }
             _ => Err(crate::WindError::Schema(
-                "Schema validation requires a Map value".to_string()
-            ))
+                "Schema validation requires a Map value".to_string(),
+            )),
         }
     }
-    
+
     fn validate_type(&self, value: &WindValue, expected: &WindType) -> Result<()> {
         let matches = match (value, expected) {
             (WindValue::Bool(_), WindType::Bool) => true,
@@ -50,7 +51,7 @@ impl Schema {
             (WindValue::Map(_), WindType::Map(_)) => true, // TODO: Validate map values
             _ => false,
         };
-        
+
         if matches {
             Ok(())
         } else {
@@ -72,20 +73,19 @@ impl SchemaRegistry {
     pub fn new() -> Self {
         Self::default()
     }
-    
+
     pub fn register(&mut self, schema: Schema) {
         self.schemas.insert(schema.id.clone(), schema);
     }
-    
+
     pub fn get(&self, id: &str) -> Option<&Schema> {
         self.schemas.get(id)
     }
-    
+
     pub fn validate(&self, schema_id: &str, value: &WindValue) -> Result<()> {
-        let schema = self.get(schema_id)
-            .ok_or_else(|| crate::WindError::Schema(
-                format!("Schema not found: {}", schema_id)
-            ))?;
+        let schema = self
+            .get(schema_id)
+            .ok_or_else(|| crate::WindError::Schema(format!("Schema not found: {}", schema_id)))?;
         schema.validate(value)
     }
 }

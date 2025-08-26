@@ -14,20 +14,20 @@ pub struct WindIdl {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum TypeDefinition {
-    Primitive { 
-        primitive_type: PrimitiveType 
+    Primitive {
+        primitive_type: PrimitiveType,
     },
-    Struct { 
-        fields: HashMap<String, FieldDefinition> 
+    Struct {
+        fields: HashMap<String, FieldDefinition>,
     },
-    Enum { 
-        variants: Vec<String> 
+    Enum {
+        variants: Vec<String>,
     },
-    Array { 
-        element_type: Box<TypeDefinition> 
+    Array {
+        element_type: Box<TypeDefinition>,
     },
-    Optional { 
-        inner_type: Box<TypeDefinition> 
+    Optional {
+        inner_type: Box<TypeDefinition>,
     },
 }
 

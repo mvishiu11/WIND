@@ -1,6 +1,6 @@
+use crate::{QosParams, SubscriptionMode, WindValue};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::{WindValue, SubscriptionMode, QosParams};
 
 /// WIND protocol messages
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,15 +26,15 @@ pub enum MessagePayload {
         success: bool,
         error: Option<String>,
     },
-    
+
     DiscoverServices {
         pattern: String, // Glob pattern like "SENSOR/*/TEMP"
     },
     ServicesDiscovered {
         services: Vec<crate::ServiceInfo>,
     },
-    
-    // Subscription messages  
+
+    // Subscription messages
     Subscribe {
         service: String,
         mode: SubscriptionMode,
@@ -47,11 +47,11 @@ pub enum MessagePayload {
         error: Option<String>,
         current_value: Option<WindValue>,
     },
-    
+
     Unsubscribe {
         subscription_id: Uuid,
     },
-    
+
     // Data messages
     Publish {
         service: String,
@@ -59,7 +59,7 @@ pub enum MessagePayload {
         value: WindValue,
         schema_id: Option<String>,
     },
-    
+
     // RPC messages
     RpcCall {
         service: String,
@@ -72,7 +72,7 @@ pub enum MessagePayload {
         result: Result<WindValue, String>,
         schema_id: Option<String>,
     },
-    
+
     // Control messages
     Heartbeat,
     Ping,

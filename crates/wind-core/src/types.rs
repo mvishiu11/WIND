@@ -60,14 +60,14 @@ pub enum SubscriptionMode {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QosParams {
     pub reliability: ReliabilityLevel,
-    pub durability: bool,      // Retain last value for late joiners
-    pub max_queue_size: u32,   // Backpressure control
+    pub durability: bool,    // Retain last value for late joiners
+    pub max_queue_size: u32, // Backpressure control
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ReliabilityLevel {
-    BestEffort,    // May drop messages
-    Reliable,      // Guaranteed delivery
+    BestEffort, // May drop messages
+    Reliable,   // Guaranteed delivery
 }
 
 impl Default for QosParams {
@@ -90,35 +90,51 @@ macro_rules! wind_value {
 
 // Conversions from Rust types to WindValue
 impl From<bool> for WindValue {
-    fn from(v: bool) -> Self { WindValue::Bool(v) }
+    fn from(v: bool) -> Self {
+        WindValue::Bool(v)
+    }
 }
 
 impl From<i32> for WindValue {
-    fn from(v: i32) -> Self { WindValue::I32(v) }
+    fn from(v: i32) -> Self {
+        WindValue::I32(v)
+    }
 }
 
 impl From<i64> for WindValue {
-    fn from(v: i64) -> Self { WindValue::I64(v) }
+    fn from(v: i64) -> Self {
+        WindValue::I64(v)
+    }
 }
 
 impl From<f32> for WindValue {
-    fn from(v: f32) -> Self { WindValue::F32(v) }
+    fn from(v: f32) -> Self {
+        WindValue::F32(v)
+    }
 }
 
 impl From<f64> for WindValue {
-    fn from(v: f64) -> Self { WindValue::F64(v) }
+    fn from(v: f64) -> Self {
+        WindValue::F64(v)
+    }
 }
 
 impl From<String> for WindValue {
-    fn from(v: String) -> Self { WindValue::String(v) }
+    fn from(v: String) -> Self {
+        WindValue::String(v)
+    }
 }
 
 impl From<&str> for WindValue {
-    fn from(v: &str) -> Self { WindValue::String(v.to_string()) }
+    fn from(v: &str) -> Self {
+        WindValue::String(v.to_string())
+    }
 }
 
 impl From<Vec<u8>> for WindValue {
-    fn from(v: Vec<u8>) -> Self { WindValue::Bytes(v) }
+    fn from(v: Vec<u8>) -> Self {
+        WindValue::Bytes(v)
+    }
 }
 
 // Conversions from WindValue to Rust types
@@ -127,10 +143,10 @@ impl TryFrom<WindValue> for bool {
     fn try_from(v: WindValue) -> std::result::Result<bool, Self::Error> {
         match v {
             WindValue::Bool(b) => Ok(b),
-            _ => Err(crate::WindError::TypeMismatch { 
-                expected: "bool".to_string(), 
-                actual: format!("{:?}", v) 
-            })
+            _ => Err(crate::WindError::TypeMismatch {
+                expected: "bool".to_string(),
+                actual: format!("{:?}", v),
+            }),
         }
     }
 }
@@ -140,10 +156,10 @@ impl TryFrom<WindValue> for i32 {
     fn try_from(v: WindValue) -> std::result::Result<i32, Self::Error> {
         match v {
             WindValue::I32(i) => Ok(i),
-            _ => Err(crate::WindError::TypeMismatch { 
-                expected: "i32".to_string(), 
-                actual: format!("{:?}", v) 
-            })
+            _ => Err(crate::WindError::TypeMismatch {
+                expected: "i32".to_string(),
+                actual: format!("{:?}", v),
+            }),
         }
     }
 }
@@ -153,10 +169,10 @@ impl TryFrom<WindValue> for String {
     fn try_from(v: WindValue) -> std::result::Result<String, Self::Error> {
         match v {
             WindValue::String(s) => Ok(s),
-            _ => Err(crate::WindError::TypeMismatch { 
-                expected: "String".to_string(), 
-                actual: format!("{:?}", v) 
-            })
+            _ => Err(crate::WindError::TypeMismatch {
+                expected: "String".to_string(),
+                actual: format!("{:?}", v),
+            }),
         }
     }
 }

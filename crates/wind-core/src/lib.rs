@@ -1,11 +1,11 @@
-pub mod types;
-pub mod protocol;
-pub mod error;
 pub mod codec;
+pub mod error;
+pub mod protocol;
 pub mod schema;
+pub mod types;
 
-pub use types::*;
-pub use protocol::*;
-pub use error::*;
 pub use codec::*;
+pub use error::*;
+pub use protocol::*;
 pub use schema::*;
+pub use types::*;

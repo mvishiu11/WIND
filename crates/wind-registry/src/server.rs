@@ -1,10 +1,10 @@
+use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::time::{interval, Duration};
 use tracing::{error, info, warn};
-use std::sync::Arc;
 
-use wind_core::{Message, MessagePayload, MessageCodec};
 use crate::Registry;
+use wind_core::{Message, MessageCodec, MessagePayload};
 
 /// Registry server that handles client connections
 pub struct RegistryServer {
@@ -19,11 +19,11 @@ impl RegistryServer {
             bind_address,
         }
     }
-    
+
     pub async fn run(&self) -> wind_core::Result<()> {
         let listener = TcpListener::bind(&self.bind_address).await?;
         info!("WIND Registry listening on {}", self.bind_address);
-        
+
         // Start cleanup task
         {
             let registry = self.registry.clone();
@@ -35,8 +35,8 @@ impl RegistryServer {
                 }
             });
         }
-        
-        // Start metrics reporting task  
+
+        // Start metrics reporting task
         {
             let registry = self.registry.clone();
             tokio::spawn(async move {
@@ -54,7 +54,7 @@ impl RegistryServer {
                 }
             });
         }
-        
+
         loop {
             match listener.accept().await {
                 Ok((socket, addr)) => {
@@ -72,27 +72,30 @@ impl RegistryServer {
             }
         }
     }
-    
-    async fn handle_client(registry: Arc<Registry>, mut socket: TcpStream) -> wind_core::Result<()> {
+
+    async fn handle_client(
+        registry: Arc<Registry>,
+        mut socket: TcpStream,
+    ) -> wind_core::Result<()> {
         loop {
             let msg = MessageCodec::decode(&mut socket).await?;
             let response = Self::handle_message(&registry, msg).await;
-            
+
             if let Some(response) = response {
                 MessageCodec::write(&mut socket, &response).await?;
             }
         }
     }
-    
+
     async fn handle_message(registry: &Arc<Registry>, msg: Message) -> Option<Message> {
         match msg.payload {
-            MessagePayload::RegisterService { 
-                service, 
-                address, 
-                service_type, 
-                schema_id, 
-                ttl_ms, 
-                tags 
+            MessagePayload::RegisterService {
+                service,
+                address,
+                service_type,
+                schema_id,
+                ttl_ms,
+                tags,
             } => {
                 let info = wind_core::ServiceInfo {
                     name: service.clone(),
@@ -102,7 +105,7 @@ impl RegistryServer {
                     ttl_ms,
                     tags,
                 };
-                
+
                 match registry.register_service(info, ttl_ms).await {
                     Ok(()) => Some(Message::new(MessagePayload::ServiceRegistered {
                         service,
@@ -116,7 +119,7 @@ impl RegistryServer {
                     })),
                 }
             }
-            
+
             MessagePayload::DiscoverServices { pattern } => {
                 match registry.discover_services(&pattern) {
                     Ok(services) => Some(Message::new(MessagePayload::ServicesDiscovered {
@@ -128,18 +131,16 @@ impl RegistryServer {
                     })),
                 }
             }
-            
-            MessagePayload::Ping => {
-                Some(Message::new(MessagePayload::Pong))
-            }
-            
+
+            MessagePayload::Ping => Some(Message::new(MessagePayload::Pong)),
+
             _ => {
                 warn!("Unhandled message type: {:?}", msg.payload);
                 None
             }
         }
     }
-    
+
     pub fn registry(&self) -> Arc<Registry> {
         self.registry.clone()
     }
