@@ -4,7 +4,7 @@ use tokio::time::{interval, Duration};
 use tracing::{error, info, warn};
 
 use crate::Registry;
-use wind_core::{Message, MessageCodec, MessagePayload};
+use wind_core::{Message, MessageCodec, MessagePayload, WindError};
 
 /// Registry server that handles client connections
 pub struct RegistryServer {
@@ -78,13 +78,21 @@ impl RegistryServer {
         mut socket: TcpStream,
     ) -> wind_core::Result<()> {
         loop {
-            let msg = MessageCodec::decode(&mut socket).await?;
+            let msg = match MessageCodec::decode(&mut socket).await {
+                Ok(msg) => msg,
+                Err(WindError::Io(e)) if e.kind() == std::io::ErrorKind::UnexpectedEof => {
+                    // Client closed the connection gracefully
+                    break;
+                }
+                Err(e) => return Err(e),
+            };
             let response = Self::handle_message(&registry, msg).await;
 
             if let Some(response) = response {
                 MessageCodec::write(&mut socket, &response).await?;
             }
         }
+        Ok(())
     }
 
     async fn handle_message(registry: &Arc<Registry>, msg: Message) -> Option<Message> {
