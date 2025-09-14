@@ -1,13 +1,22 @@
 use std::sync::Arc;
 use tokio::time::{sleep, Duration};
+use tracing::error;
 use wind_client::WindClient;
 use wind_core::WindValue;
+use wind_registry::RegistryServer;
 use wind_server::Publisher;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Start registry
-    let registry_addr = "127.0.0.1:7001";
+    let registry_addr = "127.0.0.1:7015";
+    let registry = RegistryServer::new(registry_addr.to_string());
+    tokio::spawn(async move {
+        if let Err(e) = registry.run().await {
+            error!("Registry error: {}", e);
+        }
+    });
+    tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Start publisher
     let publisher = Arc::new(Publisher::new(

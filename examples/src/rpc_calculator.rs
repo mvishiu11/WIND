@@ -1,26 +1,25 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 use tokio::time::Duration;
 use tracing::{error, info};
 use wind_client::WindClient;
 use wind_core::{Result, WindValue};
 use wind_registry::RegistryServer;
-use wind_server::{FunctionHandler, RpcServer};
+use wind_server::RpcServer;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().with_env_filter("info").init();
 
-    let registry_addr = "127.0.0.1:7001";
+    let registry_addr = "127.0.0.1:7015";
 
     // Start registry
-    // let registry = RegistryServer::new(registry_addr.to_string());
-    // tokio::spawn(async move {
-    //     if let Err(e) = registry.run().await {
-    //         error!("Registry error: {}", e);
-    //     }
-    // });
-    // tokio::time::sleep(Duration::from_millis(500)).await;
+    let registry = RegistryServer::new(registry_addr.to_string());
+    tokio::spawn(async move {
+        if let Err(e) = registry.run().await {
+            error!("Registry error: {}", e);
+        }
+    });
+    tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Create calculator RPC server
     let calc_server = RpcServer::new(

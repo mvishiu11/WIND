@@ -35,7 +35,6 @@ impl Subscription {
 
 /// High-level subscriber client with automatic reconnection and type safety
 pub struct Subscriber {
-    registry_address: String,
     active_subscriptions: Arc<RwLock<HashMap<Uuid, (String, broadcast::Sender<WindValue>)>>>,
     registry_connection: Connection,
 }
@@ -43,7 +42,6 @@ pub struct Subscriber {
 impl Subscriber {
     pub fn new(registry_address: String) -> Self {
         Self {
-            registry_address: registry_address.clone(),
             active_subscriptions: Arc::new(RwLock::new(HashMap::new())),
             registry_connection: Connection::new(registry_address),
         }

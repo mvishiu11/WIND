@@ -1,9 +1,9 @@
 use hdrhistogram::Histogram;
+use rand::RngCore;
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::time::{Duration, Instant};
 use tracing::warn;
-use rand::RngCore;
-use std::collections::HashMap;
 use wind_client::WindClient;
 use wind_core::{QosParams, SubscriptionMode, WindValue};
 use wind_registry::RegistryServer;
@@ -24,7 +24,7 @@ pub async fn run(
 
     // Start registry
     let registry = Arc::new(RegistryServer::new(registry_addr.to_string()));
-    let registry_handle = {
+    let _registry_handle = {
         let registry = registry.clone();
         tokio::spawn(async move {
             if let Err(e) = registry.run().await {
@@ -43,7 +43,7 @@ pub async fn run(
         registry_addr.to_string(),
     ));
 
-    let publisher_handle = {
+    let _publisher_handle = {
         let pub_ref = publisher.clone();
 
         tokio::spawn(async move {

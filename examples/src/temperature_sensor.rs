@@ -34,7 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_tags(vec!["sensor".to_string(), "temperature".to_string()]),
     );
 
-    let pub_handle = {
+    let _pub_handle = {
         let pub_ref = publisher.clone();
         tokio::spawn(async move {
             if let Err(e) = pub_ref.start().await {
@@ -132,7 +132,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 continue;
             };
 
-            let timestamp = if let Some(WindValue::I64(ts)) = reading.get("timestamp") {
+            let _timestamp = if let Some(WindValue::I64(ts)) = reading.get("timestamp") {
                 *ts
             } else {
                 0

@@ -1,4 +1,4 @@
-use tokio::time::{sleep, Duration};
+use tokio::time::Duration;
 use tracing::{error, info};
 use wind_client::WindClient;
 use wind_core::{QosParams, SubscriptionMode, WindValue};
@@ -142,7 +142,7 @@ pub async fn list(registry: &str, json: bool) -> anyhow::Result<()> {
 }
 
 pub async fn publish(
-    registry: &str,
+    _registry: &str,
     service: &str,
     value: &str,
     repeat: Option<u64>,

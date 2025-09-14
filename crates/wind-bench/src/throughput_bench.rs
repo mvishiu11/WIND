@@ -34,7 +34,7 @@ pub async fn run(
     for i in 0..subscribers {
         let total_msgs = total_messages.clone();
         let total_b = total_bytes.clone();
-        let registry = registry_addr.to_string();
+        let _registry = registry_addr.to_string();
 
         let handle = tokio::spawn(async move {
             let mut hist = Histogram::<u64>::new(3).unwrap();

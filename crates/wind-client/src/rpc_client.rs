@@ -1,33 +1,33 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-use tokio::sync::{oneshot, RwLock};
 use tokio::time::Duration;
 use tracing::info;
-use uuid::Uuid;
+// use uuid::Uuid;
+// use std::collections::HashMap;
+// use std::sync::Arc;
+// use tokio::sync::{oneshot, RwLock};
 
 use crate::{Connection, Subscriber};
 use wind_core::{Message, MessagePayload, Result, WindError, WindValue};
 
 /// Pending RPC call tracking
-#[derive(Debug)]
-struct PendingCall {
-    sender: oneshot::Sender<Result<WindValue>>,
-    timeout_handle: tokio::task::JoinHandle<()>,
-}
+// #[derive(Debug)]
+// struct PendingCall {
+//     sender: oneshot::Sender<Result<WindValue>>,
+//     timeout_handle: tokio::task::JoinHandle<()>,
+// }
 
 /// RPC client for making type-safe remote procedure calls
 pub struct RpcClient {
     subscriber: Subscriber,
-    connections: Arc<RwLock<HashMap<String, Connection>>>,
-    pending_calls: Arc<RwLock<HashMap<Uuid, PendingCall>>>,
+    // connections: Arc<RwLock<HashMap<String, Connection>>>,
+    // pending_calls: Arc<RwLock<HashMap<Uuid, PendingCall>>>,
 }
 
 impl RpcClient {
     pub fn new(registry_address: String) -> Self {
         Self {
             subscriber: Subscriber::new(registry_address),
-            connections: Arc::new(RwLock::new(HashMap::new())),
-            pending_calls: Arc::new(RwLock::new(HashMap::new())),
+            // connections: Arc::new(RwLock::new(HashMap::new())),
+            // pending_calls: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
