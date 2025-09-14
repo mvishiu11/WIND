@@ -5,17 +5,22 @@ edition = "2021"
 
 [[example]]
 name = "temperature_sensor"
-path = "examples/temperature_sensor.rs"
+path = "src/temperature_sensor.rs"
 
 [[example]]
 name = "rpc_calculator"
-path = "examples/rpc_calculator.rs"
+path = "src/rpc_calculator.rs"
+
+[[example]]
+name = "minimal_pubsub"
+path = "src/minimal_pubsub.rs"
 
 [dependencies]
-wind-core = { path = "crates/wind-core" }
-wind-client = { path = "crates/wind-client" }
-wind-server = { path = "crates/wind-server" }
-wind-registry = { path = "crates/wind-registry" }
+wind-core = { path = "../crates/wind-core" }
+wind-client = { path = "../crates/wind-client" }
+wind-server = { path = "../crates/wind-server" }
+wind-registry = { path = "../crates/wind-registry" }
+anyhow = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
@@ -23,7 +28,3 @@ rand = { workspace = true }
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
-
-[[bench]]
-name = "benchmark_test"
-harness = false

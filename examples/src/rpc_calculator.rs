@@ -1,11 +1,11 @@
-use wind_core::{WindValue, Result};
-use wind_server::{RpcServer, FunctionHandler};
-use wind_client::WindClient;
-use wind_registry::RegistryServer;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::time::Duration;
-use tracing::{info, error};
+use tracing::{error, info};
+use wind_client::WindClient;
+use wind_core::{Result, WindValue};
+use wind_registry::RegistryServer;
+use wind_server::{FunctionHandler, RpcServer};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -30,31 +30,35 @@ async fn main() -> Result<()> {
     );
 
     // Register calculator methods
-    calc_server.register_function("add".to_string(), |params| async move {
-        if let WindValue::Map(map) = params {
-            let a = extract_f64(&map, "a")?;
-            let b = extract_f64(&map, "b")?;
-            Ok(WindValue::F64(a + b))
-        } else {
-            Err(wind_core::WindError::TypeMismatch {
-                expected: "Map with 'a' and 'b' fields".to_string(),
-                actual: format!("{:?}", params),
-            })
-        }
-    }).await?;
+    calc_server
+        .register_function("add".to_string(), |params| async move {
+            if let WindValue::Map(map) = params {
+                let a = extract_f64(&map, "a")?;
+                let b = extract_f64(&map, "b")?;
+                Ok(WindValue::F64(a + b))
+            } else {
+                Err(wind_core::WindError::TypeMismatch {
+                    expected: "Map with 'a' and 'b' fields".to_string(),
+                    actual: format!("{:?}", params),
+                })
+            }
+        })
+        .await?;
 
-    calc_server.register_function("multiply".to_string(), |params| async move {
-        if let WindValue::Map(map) = params {
-            let a = extract_f64(&map, "a")?;
-            let b = extract_f64(&map, "b")?;
-            Ok(WindValue::F64(a * b))
-        } else {
-            Err(wind_core::WindError::TypeMismatch {
-                expected: "Map with 'a' and 'b' fields".to_string(),
-                actual: format!("{:?}", params),
-            })
-        }
-    }).await?;
+    calc_server
+        .register_function("multiply".to_string(), |params| async move {
+            if let WindValue::Map(map) = params {
+                let a = extract_f64(&map, "a")?;
+                let b = extract_f64(&map, "b")?;
+                Ok(WindValue::F64(a * b))
+            } else {
+                Err(wind_core::WindError::TypeMismatch {
+                    expected: "Map with 'a' and 'b' fields".to_string(),
+                    actual: format!("{:?}", params),
+                })
+            }
+        })
+        .await?;
 
     // Start the RPC server
     tokio::spawn(async move {
@@ -75,7 +79,9 @@ async fn main() -> Result<()> {
     add_params.insert("a".to_string(), WindValue::F64(10.0));
     add_params.insert("b".to_string(), WindValue::F64(5.0));
 
-    let result = client.call("CALCULATOR", "add", WindValue::Map(add_params)).await?;
+    let result = client
+        .call("CALCULATOR", "add", WindValue::Map(add_params))
+        .await?;
     info!("10 + 5 = {:?}", result);
 
     // Test multiplication
@@ -83,7 +89,9 @@ async fn main() -> Result<()> {
     mul_params.insert("a".to_string(), WindValue::F64(7.0));
     mul_params.insert("b".to_string(), WindValue::F64(3.0));
 
-    let result = client.call("CALCULATOR", "multiply", WindValue::Map(mul_params)).await?;
+    let result = client
+        .call("CALCULATOR", "multiply", WindValue::Map(mul_params))
+        .await?;
     info!("7 * 3 = {:?}", result);
 
     info!("RPC demo completed");
@@ -92,7 +100,13 @@ async fn main() -> Result<()> {
 
 fn extract_f64(map: &HashMap<String, WindValue>, key: &str) -> Result<f64> {
     map.get(key)
-        .and_then(|v| if let WindValue::F64(n) = v { Some(*n) } else { None })
+        .and_then(|v| {
+            if let WindValue::F64(n) = v {
+                Some(*n)
+            } else {
+                None
+            }
+        })
         .ok_or_else(|| wind_core::WindError::TypeMismatch {
             expected: format!("f64 field '{}'", key),
             actual: "missing or wrong type".to_string(),

@@ -7,6 +7,7 @@ members = [
     "crates/wind-codegen",
     "crates/wind-cli",
     "crates/wind-bench",
+    "examples"
 ]
 resolver = "2"
 
