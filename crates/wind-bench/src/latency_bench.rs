@@ -2,6 +2,8 @@ use hdrhistogram::Histogram;
 use std::sync::Arc;
 use tokio::time::{Duration, Instant};
 use tracing::warn;
+use rand::RngCore;
+use std::collections::HashMap;
 use wind_client::WindClient;
 use wind_core::{QosParams, SubscriptionMode, WindValue};
 use wind_registry::RegistryServer;
@@ -35,14 +37,13 @@ pub async fn run(
     tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Start publisher
-    let publisher = Publisher::new(
+    let publisher = Arc::new(Publisher::new(
         "BENCH/LATENCY".to_string(),
         "127.0.0.1:0".to_string(),
         registry_addr.to_string(),
-    );
+    ));
 
     let publisher_handle = {
-        let publisher = Arc::new(publisher);
         let pub_ref = publisher.clone();
 
         tokio::spawn(async move {
@@ -72,37 +73,50 @@ pub async fn run(
     let test_duration = Duration::from_secs(duration_secs);
 
     // Spawn publisher task
-    let publisher_ref = publisher_handle; // Need to fix this reference issue
+    let publisher_ref = publisher.clone();
     tokio::spawn(async move {
         let mut interval = tokio::time::interval(Duration::from_millis(10)); // 100 Hz
 
         loop {
             interval.tick().await;
 
-            // Scope RNG so it doesn't live across any await
-            let payload = {
-                use rand::RngCore;
-                let mut rng = rand::thread_rng(); // not Send, but fine if dropped before await
-                let mut p = vec![0u8; payload_bytes];
-                rng.fill_bytes(&mut p);
-                p
-            };
+            let mut payload = vec![0u8; payload_bytes];
+            rand::thread_rng().fill_bytes(&mut payload);
 
-            let value = WindValue::Bytes(payload);
-            // publish; ensure there's no await before rng is dropped (it already is)
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_micros() as i64;
+
+            let mut value_map = HashMap::new();
+            value_map.insert("timestamp".to_string(), WindValue::I64(now));
+            value_map.insert("data".to_string(), WindValue::Bytes(payload));
+
+            if let Err(e) = publisher_ref.publish(WindValue::Map(value_map)).await {
+                warn!("Publish error: {}", e);
+            }
         }
     });
 
     // Collect latency samples
     while samples_collected < samples && start_time.elapsed() < test_duration {
         if let Some(value) = subscription.next().await {
-            // Calculate latency (simplified - would need timestamp in payload)
-            let latency_us = 100; // Placeholder - need proper timestamping
-            histogram.record(latency_us)?;
-            samples_collected += 1;
+            if let WindValue::Map(received_map) = value {
+                if let Some(WindValue::I64(sent_ts)) = received_map.get("timestamp") {
+                    let now = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_micros() as i64;
+                    let latency_us = (now - sent_ts) as u64;
+                    histogram.record(latency_us).unwrap_or_else(|e| {
+                        warn!("Failed to record latency: {}", e);
+                    });
+                    samples_collected += 1;
 
-            if samples_collected % 1000 == 0 {
-                println!("Collected {} samples...", samples_collected);
+                    if samples_collected % 1000 == 0 {
+                        println!("Collected {} samples...", samples_collected);
+                    }
+                }
             }
         }
     }
