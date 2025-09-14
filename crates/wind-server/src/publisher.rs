@@ -40,14 +40,10 @@ impl ClientSubscription {
             }
             SubscriptionMode::OnChange => {
                 // send if payload changed
-                if self.last_sent_value.as_ref() != Some(next) {
-                    true
-                } else {
-                    false
-                }
+                self.last_sent_value.as_ref() != Some(next)
             }
             SubscriptionMode::Periodic { interval_ms } => {
-                let p = Duration::from_millis(interval_ms as u64);
+                let p = Duration::from_millis(interval_ms);
                 match self.last_sent_at {
                     None => true,
                     Some(ts) => now.duration_since(ts) >= p,

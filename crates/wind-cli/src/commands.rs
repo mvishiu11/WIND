@@ -11,28 +11,26 @@ pub async fn discover(registry: &str, pattern: &str, json: bool) -> anyhow::Resu
 
     if json {
         println!("{}", serde_json::to_string_pretty(&services)?);
+    } else if services.is_empty() {
+        println!("No services found matching pattern: {}", pattern);
     } else {
-        if services.is_empty() {
-            println!("No services found matching pattern: {}", pattern);
-        } else {
+        println!(
+            "Found {} service(s) matching '{}':",
+            services.len(),
+            pattern
+        );
+        for service in services {
             println!(
-                "Found {} service(s) matching '{}':",
-                services.len(),
-                pattern
+                "  {} -> {} ({})",
+                service.name,
+                service.address,
+                format!("{:?}", service.service_type)
             );
-            for service in services {
-                println!(
-                    "  {} -> {} ({})",
-                    service.name,
-                    service.address,
-                    format!("{:?}", service.service_type)
-                );
-                if let Some(schema) = &service.schema_id {
-                    println!("    Schema: {}", schema);
-                }
-                if !service.tags.is_empty() {
-                    println!("    Tags: {}", service.tags.join(", "));
-                }
+            if let Some(schema) = &service.schema_id {
+                println!("    Schema: {}", schema);
+            }
+            if !service.tags.is_empty() {
+                println!("    Tags: {}", service.tags.join(", "));
             }
         }
     }

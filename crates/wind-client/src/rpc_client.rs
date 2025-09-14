@@ -55,7 +55,7 @@ impl RpcClient {
 
         match response.payload {
             MessagePayload::RpcResponse { result, .. } => {
-                result.map_err(|e| WindError::Protocol(e))
+                result.map_err(WindError::Protocol)
             }
             _ => Err(WindError::Protocol("Unexpected response".to_string())),
         }

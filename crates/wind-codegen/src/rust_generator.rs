@@ -8,6 +8,12 @@ pub struct RustGenerator {
     // Configuration options could go here
 }
 
+impl Default for RustGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RustGenerator {
     pub fn new() -> Self {
         Self {}

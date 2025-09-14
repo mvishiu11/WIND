@@ -1,5 +1,4 @@
 use clap::Parser;
-use tracing_subscriber;
 use wind_registry::RegistryServer;
 
 #[derive(Parser)]

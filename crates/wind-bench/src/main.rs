@@ -1,5 +1,4 @@
 use clap::{Parser, Subcommand};
-use tracing_subscriber;
 
 mod latency_bench;
 mod load_bench;

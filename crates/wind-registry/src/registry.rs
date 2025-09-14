@@ -139,7 +139,7 @@ impl Registry {
             .services
             .iter()
             .filter(|entry| !entry.value().is_expired())
-            .filter(|entry| matcher.matches(&entry.key()))
+            .filter(|entry| matcher.matches(entry.key()))
             .map(|entry| entry.value().info.clone())
             .collect();
 

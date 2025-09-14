@@ -130,7 +130,7 @@ impl Subscriber {
                             Ok(msg) => {
                                 match msg.payload {
                                     MessagePayload::Publish { value, .. } => {
-                                        if let Err(_) = tx.send(value) {
+                                        if tx.send(value).is_err() {
                                             warn!("No active receivers for subscription {}", subscription_id);
                                         }
                                     }
