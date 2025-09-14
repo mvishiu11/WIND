@@ -10,27 +10,23 @@ use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use wind_core::{
-    Message, MessageCodec, MessagePayload, QosParams, Result, ServiceType, SubscriptionMode,
-    WindError, WindValue,
+    Message, MessageCodec, MessagePayload, Result, ServiceType, SubscriptionMode, WindError,
+    WindValue,
 };
 
 /// Subscription tracking for a single client
 
 #[derive(Clone, Debug)]
 struct ClientSubscription {
-    id: Uuid,
     mode: SubscriptionMode,
-    qos: QosParams,
     last_sent_at: Option<Instant>,
     last_sent_value: Option<WindValue>,
 }
 
 impl ClientSubscription {
-    fn new(id: Uuid, mode: SubscriptionMode, qos: QosParams) -> Self {
+    fn new(mode: SubscriptionMode) -> Self {
         Self {
-            id,
             mode,
-            qos,
             last_sent_at: None,
             last_sent_value: None,
         }
@@ -69,7 +65,6 @@ impl ClientSubscription {
 /// Active client connection state
 #[derive(Debug)]
 struct ActiveClient {
-    address: String,
     stream: TcpStream,
     subscriptions: HashMap<String, ClientSubscription>,
 }
@@ -164,7 +159,6 @@ impl Publisher {
                     clients.insert(
                         client_id,
                         ActiveClient {
-                            address: addr.to_string(),
                             stream,
                             subscriptions: HashMap::new(),
                         },
@@ -245,7 +239,7 @@ impl Publisher {
         }
     }
 
-    async fn start_heartbeat_task(&self, address: String) {
+    fn start_heartbeat_task(&self, address: String) {
         let registry_address = self.registry_address.clone();
         let service_name = self.service_name.clone();
         let ttl_ms = self.ttl_ms;
@@ -299,25 +293,26 @@ impl Publisher {
                 let mut clients_to_remove = Vec::new();
 
                 for (client_id, client) in clients_guard.iter_mut() {
-                    if client.subscriptions.is_empty() {
-                        continue;
-                    }
+                    for (service, subscription) in client.subscriptions.iter_mut() {
+                        if subscription.should_send(Instant::now(), &new_value) {
+                            let publish_msg = Message::new(MessagePayload::Publish {
+                                service: service.clone(),
+                                sequence: seq,
+                                value: new_value.clone(),
+                                schema_id: None,
+                            });
 
-                    // This logic can be improved with SubscriptionMode, but for now, send all
-                    let publish_msg = Message::new(MessagePayload::Publish {
-                        service: client.subscriptions.keys().next().unwrap().clone(), // Simplified
-                        sequence: seq,
-                        value: new_value.clone(),
-                        schema_id: None,
-                    });
-
-                    match MessageCodec::write(&mut client.stream, &publish_msg).await {
-                        Ok(()) => {
-                            debug!("Sent update to client {}", client_id);
-                        }
-                        Err(e) => {
-                            warn!("Failed to send to client {}: {}", client_id, e);
-                            clients_to_remove.push(*client_id);
+                            match MessageCodec::write(&mut client.stream, &publish_msg).await {
+                                Ok(()) => {
+                                    subscription.mark_sent(Instant::now(), &new_value);
+                                    debug!("Sent update to client {}", client_id);
+                                }
+                                Err(e) => {
+                                    warn!("Failed to send to client {}: {}", client_id, e);
+                                    clients_to_remove.push(*client_id);
+                                    break; // Stop trying to send to this broken client
+                                }
+                            }
                         }
                     }
                 }
@@ -358,12 +353,10 @@ impl Publisher {
             };
 
             match msg.payload {
-                MessagePayload::Subscribe {
-                    service, mode, qos, ..
-                } => {
+                MessagePayload::Subscribe { service, mode, .. } => {
                     client
                         .subscriptions
-                        .insert(service, ClientSubscription::new(client_id, mode, qos));
+                        .insert(service, ClientSubscription::new(mode));
 
                     let ack = Message::new(MessagePayload::SubscribeAck {
                         subscription_id: client_id,
