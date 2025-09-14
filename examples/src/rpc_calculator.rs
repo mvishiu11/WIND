@@ -11,16 +11,16 @@ use wind_server::{FunctionHandler, RpcServer};
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().with_env_filter("info").init();
 
-    let registry_addr = "127.0.0.1:7002";
+    let registry_addr = "127.0.0.1:7001";
 
     // Start registry
-    let registry = RegistryServer::new(registry_addr.to_string());
-    tokio::spawn(async move {
-        if let Err(e) = registry.run().await {
-            error!("Registry error: {}", e);
-        }
-    });
-    tokio::time::sleep(Duration::from_millis(500)).await;
+    // let registry = RegistryServer::new(registry_addr.to_string());
+    // tokio::spawn(async move {
+    //     if let Err(e) = registry.run().await {
+    //         error!("Registry error: {}", e);
+    //     }
+    // });
+    // tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Create calculator RPC server
     let calc_server = RpcServer::new(

@@ -180,7 +180,14 @@ impl RpcServer {
         mut stream: TcpStream,
     ) -> Result<()> {
         loop {
-            let request = MessageCodec::decode(&mut stream).await?;
+            let request = match MessageCodec::decode(&mut stream).await {
+                Ok(msg) => msg,
+                Err(WindError::Io(e)) if e.kind() == std::io::ErrorKind::UnexpectedEof => {
+                    // Client closed the connection gracefully
+                    break;
+                }
+                Err(e) => return Err(e),
+            };
 
             match request.payload {
                 MessagePayload::RpcCall {
@@ -230,5 +237,6 @@ impl RpcServer {
                 }
             }
         }
+        Ok(())
     }
 }
