@@ -1344,6 +1344,7 @@ dependencies = [
  "tracing-subscriber",
  "wind-client",
  "wind-core",
+ "wind-server",
 ]
 
 [[package]]

@@ -11,6 +11,7 @@ path = "src/main.rs"
 [dependencies]
 wind-core = { path = "../wind-core" }
 wind-client = { path = "../wind-client" }
+wind-server = { path = "../wind-server" }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 clap = { workspace = true }

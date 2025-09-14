@@ -1,7 +1,9 @@
-use tokio::time::Duration;
+use std::sync::Arc;
+use tokio::time::{interval, sleep, Duration};
 use tracing::{error, info};
 use wind_client::WindClient;
 use wind_core::{QosParams, SubscriptionMode, WindValue};
+use wind_server::Publisher;
 
 pub async fn discover(registry: &str, pattern: &str, json: bool) -> anyhow::Result<()> {
     let mut client = WindClient::new(registry.to_string());
@@ -142,24 +144,56 @@ pub async fn list(registry: &str, json: bool) -> anyhow::Result<()> {
 }
 
 pub async fn publish(
-    _registry: &str,
+    registry: &str,
     service: &str,
     value: &str,
     repeat: Option<u64>,
     interval_ms: u64,
 ) -> anyhow::Result<()> {
-    // This is a simplified publish command that would work with a test publisher
-    // In practice, this would need to start a temporary publisher
-    info!("Publish command not fully implemented yet");
-    println!("Would publish to '{}': {}", service, value);
+    // Parse the input value as JSON, then convert to WindValue
+    let json_val: serde_json::Value = serde_json::from_str(value)
+        .map_err(|e| anyhow::anyhow!("Invalid JSON value: {}", e))?;
+    let wind_value = json_to_wind_value(json_val);
+
+    // Create and start a temporary publisher
+    let publisher = Arc::new(Publisher::new(
+        service.to_string(),
+        "127.0.0.1:0".to_string(), // Bind to any available port
+        registry.to_string(),
+    ));
+
+    let publisher_handle = {
+        let publisher_ref = publisher.clone();
+        tokio::spawn(async move {
+            if let Err(e) = publisher_ref.start().await {
+                error!("Publisher failed to start: {}", e);
+            }
+        })
+    };
+
+    // Give the publisher time to register with the registry
+    sleep(Duration::from_millis(500)).await;
 
     if let Some(count) = repeat {
-        println!(
-            "Would repeat {} times with {}ms intervals",
-            count, interval_ms
+        info!(
+            "Publishing to '{}' {} times every {}ms...",
+            service, count, interval_ms
         );
+        let mut ticker = interval(Duration::from_millis(interval_ms));
+        for i in 0..count {
+            ticker.tick().await;
+            publisher.publish(wind_value.clone()).await?;
+            info!("Published message {}/{}", i + 1, count);
+        }
+    } else {
+        info!("Publishing a single message to '{}'...", service);
+        publisher.publish(wind_value).await?;
+        info!("Message published.");
+        // Give a moment for the message to be sent before exiting
+        sleep(Duration::from_millis(200)).await;
     }
 
+    publisher_handle.abort();
     Ok(())
 }
 
